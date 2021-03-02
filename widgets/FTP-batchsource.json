@@ -1,0 +1,85 @@
+{
+  "metadata": {
+    "spec-version": "1.5"
+  },
+  "configuration-groups": [
+    {
+      "label": "Basic",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Reference Name",
+          "name": "referenceName",
+          "widget-attributes": {
+            "placeholder": "Name used to identify this source for lineage"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Path",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "label": "Advanced",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Regex Path Filter",
+          "name": "fileRegex"
+        },
+        {
+          "widget-type": "json-editor",
+          "label": "File System Properties",
+          "name": "fileSystemProperties"
+        },
+        {
+          "widget-type": "radio-group",
+          "label": "Allow Empty Input",
+          "name": "ignoreNonExistingFolders",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "false",
+            "options": [
+              {
+                "id": "true",
+                "label": "True"
+              },
+              {
+                "id": "false",
+                "label": "False"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "widget-type": "non-editable-schema-editor",
+      "schema": {
+        "name": "etlSchemaBody",
+        "type": "record",
+        "fields": [
+          {
+            "name": "offset",
+            "type": "long"
+          },
+          {
+            "name": "body",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "jump-config": {
+    "datasets": [
+      {
+        "ref-property-name": "referenceName"
+      }
+    ]
+  }
+}
