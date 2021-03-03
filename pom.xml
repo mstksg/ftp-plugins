@@ -21,7 +21,7 @@
 
   <groupId>io.cdap.plugin</groupId>
   <artifactId>ftp-plugins</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
 
   <licenses>
     <license>
