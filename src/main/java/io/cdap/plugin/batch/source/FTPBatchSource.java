@@ -32,6 +32,8 @@ import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.format.FileFormat;
 import io.cdap.plugin.format.plugin.AbstractFileSource;
 import io.cdap.plugin.format.plugin.FileSourceProperties;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
@@ -135,7 +137,33 @@ public class FTPBatchSource extends AbstractFileSource {
         if (!containsMacro(PATH)) {
           validateAuthenticationInPath(collector);
         }
-        getFileSystemProperties(collector);
+        Map<String, String> fsp = getFileSystemProperties(collector);
+        try {
+          Path urlInfo;
+          String extractedPassword = extractPasswordFromUrl();
+          String encodedPassword = URLEncoder.encode(extractedPassword);
+          String validatePath = path.replace(extractedPassword, encodedPassword);
+          try {
+            urlInfo = new Path(validatePath);
+          } catch (Exception e) {
+            throw new IllegalArgumentException(String.format("Unable to parse url: %s %s", e.getMessage(), e));
+          }
+          Configuration conf = new Configuration();
+          for (Map.Entry<String, String> entry : fsp.entrySet()) {
+            conf.set(entry.getKey(), entry.getValue());
+          }
+          String protocol = urlInfo.toUri().getScheme();
+          if (protocol.equals(SFTP_PROTOCOL)) {
+            conf.set(FS_SFTP_IMPL, SFTP_FS_CLASS);
+          }
+          FileSystem fs = FileSystem.newInstance(urlInfo.toUri(), conf);
+          // TODO: Add setTimeout option in the future
+          // https://cdap.atlassian.net/browse/PLUGIN-1181
+          fs.getFileStatus(urlInfo);
+        } catch (Exception e) {
+          collector.addFailure("Unable to connect with given url", null)
+            .withConfigProperty(PATH).withStacktrace(e.getStackTrace());
+        }
       } catch (IllegalArgumentException e) {
         collector.addFailure("File system properties must be a valid json.", null)
           .withConfigProperty(NAME_FILE_SYSTEM_PROPERTIES).withStacktrace(e.getStackTrace());

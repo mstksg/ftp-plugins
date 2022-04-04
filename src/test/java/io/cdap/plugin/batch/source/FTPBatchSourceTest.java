@@ -19,8 +19,16 @@ package io.cdap.plugin.batch.source;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.validation.ValidationException;
 import io.cdap.cdap.etl.mock.validation.MockFailureCollector;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockftpserver.fake.FakeFtpServer;
+import org.mockftpserver.fake.UserAccount;
+import org.mockftpserver.fake.filesystem.DirectoryEntry;
+import org.mockftpserver.fake.filesystem.FileEntry;
+import org.mockftpserver.fake.filesystem.FileSystem;
+import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 
 import java.util.HashMap;
 
@@ -33,7 +41,7 @@ public class FTPBatchSourceTest {
   private static final String USER = "user";
   private static final String PASSWORD_WITH_SPECIAL_CHARACTERS = "wex^Yz@123#456!";
   private static final String PASSWORD_WITHOUT_SPECIAL_CHARACTERS = "wexYz123456";
-  private static final String HOST = "192.168.0.179";
+  private static final String HOST = "localhost";
   private static final int FTP_DEFAULT_PORT = 21;
   private static final int SFTP_DEFAULT_PORT = 22;
   private static final String PATH = "/user-look-here.txt";
@@ -41,6 +49,28 @@ public class FTPBatchSourceTest {
   private static final String SFTP_PREFIX = "sftp";
   private static final String SFTP_FS_CLASS = "org.apache.hadoop.fs.sftp.SFTPFileSystem";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
+  private static FakeFtpServer ftpServer;
+
+  @BeforeClass
+  public static void ftpSetup() {
+    ftpServer = new FakeFtpServer();
+    ftpServer.addUserAccount(new UserAccount("user", "password", "/tmp"));
+    ftpServer.setServerControlPort(21);
+
+    FileSystem fileSystem = new UnixFakeFileSystem();
+    fileSystem.add(new DirectoryEntry("/tmp"));
+    fileSystem.add(new FileEntry("/tmp/file1.txt", "hello world"));
+    fileSystem.add(new FileEntry("/tmp/file2.txt", "hello world"));
+    fileSystem.add(new FileEntry("/tmp/file3.txt", "hello world"));
+
+    ftpServer.setFileSystem(fileSystem);
+    ftpServer.start();
+  }
+
+  @AfterClass
+  public static void ftpTeardown() {
+    ftpServer.stop();
+  }
 
   @Test
   public void testFTPPathWithSpecialCharactersInAuth() {
@@ -162,4 +192,33 @@ public class FTPBatchSourceTest {
     Assert.assertEquals(5, config.getFileSystemProperties(collector).size());
     Assert.assertEquals(fileSystemProperties, config.getFileSystemProperties(collector));
   }
+
+  @Test
+  public void testInvalidServerFTPPathConnection() {
+    FailureCollector collector = new MockFailureCollector();
+    FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
+    config.configuration("ftp://user:password@invalid_server:21", "");
+    config.validate(collector);
+    Assert.assertTrue(collector.getValidationFailures().size() > 0);
+  }
+
+  @Test
+  public void testInvalidUsernamePasswordFTPPathConnection() {
+    FailureCollector collector = new MockFailureCollector();
+    FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
+    config.configuration("ftp://wronguser:wrongpassword@localhost:21", "");
+    config.validate(collector);
+    Assert.assertTrue(collector.getValidationFailures().size() > 0);
+  }
+
+  @Test
+  public void testValidFTPPathConnection() {
+    FailureCollector collector = new MockFailureCollector();
+    FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
+    config.configuration("ftp://user:password@localhost:21", "");
+    config.validate(collector);
+    Assert.assertEquals(0, collector.getValidationFailures().size());
+  }
 }
+
+
