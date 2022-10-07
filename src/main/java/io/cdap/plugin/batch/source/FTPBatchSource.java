@@ -29,6 +29,9 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
+import io.cdap.plugin.common.Asset;
+import io.cdap.plugin.common.LineageRecorder;
+import io.cdap.plugin.common.ReferenceNames;
 import io.cdap.plugin.format.FileFormat;
 import io.cdap.plugin.format.plugin.AbstractFileSource;
 import io.cdap.plugin.format.plugin.FileSourceProperties;
@@ -67,10 +70,24 @@ public class FTPBatchSource extends AbstractFileSource {
                                                       Schema.Field.of("body", Schema.of(Schema.Type.STRING)));
   private static final Pattern PATTERN_WITHOUT_SPECIAL_CHARACTERS = Pattern.compile("[^A-Za-z0-9]");
   private final FTPBatchSourceConfig config;
+  private Asset asset;
 
   public FTPBatchSource(FTPBatchSourceConfig config) {
     super(config);
     this.config = config;
+  }
+
+  @Override
+  public void prepareRun(BatchSourceContext context) throws Exception {
+    // create asset for lineage
+    String referenceName = Strings.isNullOrEmpty(config.getReferenceName())
+      ? ReferenceNames.normalizeFqn(config.getPath())
+      : config.getReferenceName();
+    asset = Asset.builder(referenceName)
+      .setFqn(config.getPath()).build();
+
+    // super is called down here to avoid instantiating the lineage recorder with a null asset
+    super.prepareRun(context);
   }
 
   @Override
@@ -88,6 +105,11 @@ public class FTPBatchSource extends AbstractFileSource {
     return properties;
   }
 
+  @Override
+  protected LineageRecorder getLineageRecorder(BatchSourceContext context) {
+    return new LineageRecorder(context, asset);
+  }
+
   /**
    * Config class that contains all the properties needed for FTP Batch Source.
    */
@@ -98,6 +120,7 @@ public class FTPBatchSource extends AbstractFileSource {
     }.getType();
 
     @Macro
+    @Nullable
     @Description("Name be used to uniquely identify this source for lineage, annotating metadata, etc.")
     private String referenceName;
 
