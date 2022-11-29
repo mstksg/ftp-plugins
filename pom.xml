@@ -36,8 +36,8 @@
     <!-- properties for script build step that creates the config files for the artifacts -->
     <data.pipeline.parent>system:cdap-data-pipeline[6.8.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.pipeline.parent>
     <data.stream.parent>system:cdap-data-streams[6.8.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.stream.parent>
-    <cdap.version>6.8.0-SNAPSHOT</cdap.version>
-    <hydrator.version>2.10.0-SNAPSHOT</hydrator.version>
+    <cdap.version>6.9.0-SNAPSHOT</cdap.version>
+    <hydrator.version>2.11.0-SNAPSHOT</hydrator.version>
     <hadoop.version>2.3.0</hadoop.version>
     <mockftp.version>2.6</mockftp.version>
     <junit.version>4.11</junit.version>
