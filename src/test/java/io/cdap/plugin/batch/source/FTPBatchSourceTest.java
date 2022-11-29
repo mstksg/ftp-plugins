@@ -50,12 +50,13 @@ public class FTPBatchSourceTest {
   private static final String SFTP_FS_CLASS = "org.apache.hadoop.fs.sftp.SFTPFileSystem";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
   private static FakeFtpServer ftpServer;
+  private static int ftpServerPort;
 
   @BeforeClass
   public static void ftpSetup() {
     ftpServer = new FakeFtpServer();
     ftpServer.addUserAccount(new UserAccount("user", "password", "/tmp"));
-    ftpServer.setServerControlPort(21);
+    ftpServer.setServerControlPort(0);
 
     FileSystem fileSystem = new UnixFakeFileSystem();
     fileSystem.add(new DirectoryEntry("/tmp"));
@@ -65,6 +66,7 @@ public class FTPBatchSourceTest {
 
     ftpServer.setFileSystem(fileSystem);
     ftpServer.start();
+    ftpServerPort = ftpServer.getServerControlPort();
   }
 
   @AfterClass
@@ -197,25 +199,25 @@ public class FTPBatchSourceTest {
   public void testInvalidServerFTPPathConnection() {
     FailureCollector collector = new MockFailureCollector();
     FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
-    config.configuration("ftp://user:password@invalid_server:21", "");
+    config.configuration(String.format("ftp://user:password@invalid_server:%d", ftpServerPort), "");
     config.validate(collector);
-    Assert.assertTrue(collector.getValidationFailures().size() > 0);
+    Assert.assertEquals(1, collector.getValidationFailures().size());
   }
 
   @Test
   public void testInvalidUsernamePasswordFTPPathConnection() {
     FailureCollector collector = new MockFailureCollector();
     FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
-    config.configuration("ftp://wronguser:wrongpassword@localhost:21", "");
+    config.configuration(String.format("ftp://wronguser:wrongpassword@localhost:%d", ftpServerPort), "");
     config.validate(collector);
-    Assert.assertTrue(collector.getValidationFailures().size() > 0);
+    Assert.assertEquals(1, collector.getValidationFailures().size());
   }
 
   @Test
   public void testValidFTPPathConnection() {
     FailureCollector collector = new MockFailureCollector();
     FTPBatchSource.FTPBatchSourceConfig config = new FTPBatchSource.FTPBatchSourceConfig();
-    config.configuration("ftp://user:password@localhost:21", "");
+    config.configuration(String.format("ftp://user:password@localhost:%d", ftpServerPort), "");
     config.validate(collector);
     Assert.assertEquals(0, collector.getValidationFailures().size());
   }
