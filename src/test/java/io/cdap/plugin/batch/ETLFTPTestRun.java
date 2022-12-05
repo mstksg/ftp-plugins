@@ -193,7 +193,7 @@ public class ETLFTPTestRun extends ETLBatchTestBase {
     DataSetManager<Table> outputManager = getDataset(outputDatasetName);
     List<StructuredRecord> output = MockSink.readOutput(outputManager);
 
-    Assert.assertEquals("Expected records", 1, output.size());
+    Assert.assertEquals("Expected records", 2, output.size());
     Set<String> outputValue = new HashSet<>();
     for (StructuredRecord record : output) {
       outputValue.add(record.get("body"));
