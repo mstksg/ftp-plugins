@@ -171,7 +171,7 @@ public class ETLFTPTestRun extends ETLBatchTestBase {
     List<StructuredRecord> output = MockSink.readOutput(outputManager);
 
     Assert.assertEquals("Expected records", 1, output.size());
-    Assert.assertEquals("Single file",TEST_STRING_2, output.get(0).get("body"));
+    Assert.assertEquals("Single file", TEST_STRING_2, output.get(0).get("body"));
   }
 
   private void testHelper(Map<String, String> properties, Map<String, String> runTimeProperties) throws Exception {

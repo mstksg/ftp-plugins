@@ -294,6 +294,18 @@
       <artifactId>format-text</artifactId>
       <version>${hydrator.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-explore</artifactId>
+      <version>${cdap.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.cdap.cdap</groupId>
+          <artifactId>cdap-unit-test</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -392,9 +404,9 @@
           <includes>
             <include>**/*TestSuite.java</include>
             <include>**/*Test.java</include>
+            <exclude>**/*TestRun.java</exclude>
           </includes>
           <excludes>
-            <exclude>**/*TestRun.java</exclude>
             <exclude>**/*TestBase.java</exclude>
           </excludes>
         </configuration>
