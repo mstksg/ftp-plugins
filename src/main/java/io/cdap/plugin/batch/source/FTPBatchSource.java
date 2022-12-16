@@ -29,6 +29,7 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
+import io.cdap.plugin.batch.source.sftp.SFTPFileSystem;
 import io.cdap.plugin.common.Asset;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.ReferenceNames;
@@ -58,7 +59,7 @@ import javax.annotation.Nullable;
 public class FTPBatchSource extends AbstractFileSource {
   private static final String NAME_FILE_SYSTEM_PROPERTIES = "fileSystemProperties";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
-  private static final String SFTP_FS_CLASS = "org.apache.hadoop.fs.sftp.SFTPFileSystem";
+  private static final String SFTP_FS_CLASS = SFTPFileSystem.class.getName();
   private static final String FTP_PROTOCOL = "ftp";
   private static final String SFTP_PROTOCOL = "sftp";
   private static final String PATH = "path";
