@@ -432,7 +432,7 @@
         <configuration>
           <instructions>
             <_exportcontents>
-              io.cdap.plugin.*;
+              io.cdap.plugin.batch.source.ftp.*;
             </_exportcontents>
             <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
             <Embed-Transitive>true</Embed-Transitive>

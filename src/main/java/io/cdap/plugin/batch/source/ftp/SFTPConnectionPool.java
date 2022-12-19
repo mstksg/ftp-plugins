@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.cdap.plugin.batch.source.sftp;
+package io.cdap.plugin.batch.source.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.Set;
 /** Concurrent/Multiple Connections. */
 class SFTPConnectionPool {
 
-  public static final Log LOG = LogFactory.getLog(SFTPFileSystem.class);
+  public static final Logger LOG = LoggerFactory.getLogger(SFTPFileSystem.class);
   // Maximum number of allowed live connections. This doesn't mean we cannot
   // have more live connections. It means that when we have more
   // live connections than this threshold, any unused connection will be

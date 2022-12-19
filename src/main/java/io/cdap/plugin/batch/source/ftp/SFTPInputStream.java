@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.plugin.batch.source.sftp;
+package io.cdap.plugin.batch.source.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;

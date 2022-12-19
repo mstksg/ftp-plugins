@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package io.cdap.plugin.batch.source;
+package io.cdap.plugin.batch.source.ftp;
 
 
 import io.cdap.cdap.etl.api.FailureCollector;

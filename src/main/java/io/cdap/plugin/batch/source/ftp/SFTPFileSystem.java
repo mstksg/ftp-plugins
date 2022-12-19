@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.cdap.plugin.batch.source.sftp;
+package io.cdap.plugin.batch.source.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -48,8 +46,6 @@ import java.util.Vector;
  * */
 
 public class SFTPFileSystem extends FileSystem {
-
-  public static final Log LOG = LogFactory.getLog(SFTPFileSystem.class);
 
   private SFTPConnectionPool connectionPool;
   private URI uri;
