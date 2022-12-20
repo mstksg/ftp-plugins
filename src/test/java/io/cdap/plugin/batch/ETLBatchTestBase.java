@@ -32,7 +32,7 @@ import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.test.ApplicationManager;
 import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.cdap.test.WorkflowManager;
-import io.cdap.plugin.batch.source.FTPBatchSource;
+import io.cdap.plugin.batch.source.ftp.FTPBatchSource;
 import io.cdap.plugin.format.avro.input.AvroInputFormatProvider;
 import io.cdap.plugin.format.avro.output.AvroOutputFormatProvider;
 import io.cdap.plugin.format.blob.input.BlobInputFormatProvider;

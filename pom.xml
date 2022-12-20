@@ -59,6 +59,12 @@
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
+    <!-- Spark provides hadoop-common but does not include jsch for sftp support -->
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+      <version>0.1.54</version>
+    </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
@@ -426,7 +432,7 @@
         <configuration>
           <instructions>
             <_exportcontents>
-              io.cdap.plugin.*;
+              io.cdap.plugin.batch.source.ftp.*;
             </_exportcontents>
             <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
             <Embed-Transitive>true</Embed-Transitive>

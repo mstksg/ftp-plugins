@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.plugin.batch.source;
+package io.cdap.plugin.batch.source.ftp;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -32,13 +32,17 @@ import io.cdap.cdap.etl.api.batch.BatchSourceContext;
 import io.cdap.plugin.common.Asset;
 import io.cdap.plugin.common.LineageRecorder;
 import io.cdap.plugin.common.ReferenceNames;
+import io.cdap.plugin.common.batch.JobUtils;
 import io.cdap.plugin.format.FileFormat;
 import io.cdap.plugin.format.plugin.AbstractFileSource;
 import io.cdap.plugin.format.plugin.FileSourceProperties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
@@ -56,9 +60,10 @@ import javax.annotation.Nullable;
 @Description("Batch source for an FTP or SFTP source. Prefix of the path ('ftp://...' or 'sftp://...') determines " +
   "the source server type, either FTP or SFTP.")
 public class FTPBatchSource extends AbstractFileSource {
+  public static final Logger LOG = LoggerFactory.getLogger(FTPBatchSource.class);
   private static final String NAME_FILE_SYSTEM_PROPERTIES = "fileSystemProperties";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
-  private static final String SFTP_FS_CLASS = "org.apache.hadoop.fs.sftp.SFTPFileSystem";
+  private static final String SFTP_FS_CLASS = SFTPFileSystem.class.getName();
   private static final String FTP_PROTOCOL = "ftp";
   private static final String SFTP_PROTOCOL = "sftp";
   private static final String PATH = "path";
@@ -150,16 +155,13 @@ public class FTPBatchSource extends AbstractFileSource {
     private String fileRegex;
 
     @Override
-    public void validate() {
-      getFileSystemProperties(null);
-    }
-
-    @Override
     public void validate(FailureCollector collector) {
       try {
-        if (!containsMacro(PATH)) {
-          validateAuthenticationInPath(collector);
+        if (containsMacro(PATH)) {
+          return;
         }
+        validateAuthenticationInPath(collector);
+
         Map<String, String> fsp = getFileSystemProperties(collector);
         try {
           Path urlInfo;
@@ -171,7 +173,8 @@ public class FTPBatchSource extends AbstractFileSource {
           } catch (Exception e) {
             throw new IllegalArgumentException(String.format("Unable to parse url: %s %s", e.getMessage(), e));
           }
-          Configuration conf = new Configuration();
+          Job job = JobUtils.createInstance();
+          Configuration conf = job.getConfiguration();
           for (Map.Entry<String, String> entry : fsp.entrySet()) {
             conf.set(entry.getKey(), entry.getValue());
           }
@@ -179,11 +182,14 @@ public class FTPBatchSource extends AbstractFileSource {
           if (protocol.equals(SFTP_PROTOCOL)) {
             conf.set(FS_SFTP_IMPL, SFTP_FS_CLASS);
           }
-          FileSystem fs = FileSystem.newInstance(urlInfo.toUri(), conf);
+          FileSystem fs = JobUtils.applyWithExtraClassLoader(job, getClass().getClassLoader(),
+              f -> FileSystem.get(urlInfo.toUri(), conf));
           // TODO: Add setTimeout option in the future
           // https://cdap.atlassian.net/browse/PLUGIN-1181
           fs.getFileStatus(urlInfo);
         } catch (Exception e) {
+          //Log exception details as otherwise we loose it, and it's hard to debug
+          LOG.warn("Unable to connect with the given url", e);
           collector.addFailure("Unable to connect with given url", null)
             .withConfigProperty(PATH).withStacktrace(e.getStackTrace());
         }
