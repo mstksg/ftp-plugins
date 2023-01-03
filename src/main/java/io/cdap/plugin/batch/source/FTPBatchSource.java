@@ -138,31 +138,35 @@ public class FTPBatchSource extends AbstractFileSource {
           validateAuthenticationInPath(collector);
         }
         Map<String, String> fsp = getFileSystemProperties(collector);
-        try {
-          Path urlInfo;
-          String extractedPassword = extractPasswordFromUrl();
-          String encodedPassword = URLEncoder.encode(extractedPassword);
-          String validatePath = path.replace(extractedPassword, encodedPassword);
+        // for some reason, path is null when called with a macro in Preview mode or Pre-Deploy.  In
+        // that case, skip validation.
+        if (path != null) {
           try {
-            urlInfo = new Path(validatePath);
+            Path urlInfo;
+            String extractedPassword = extractPasswordFromUrl();
+            String encodedPassword = URLEncoder.encode(extractedPassword);
+            String validatePath = path.replace(extractedPassword, encodedPassword);
+            try {
+              urlInfo = new Path(validatePath);
+            } catch (Exception e) {
+              throw new IllegalArgumentException(String.format("Unable to parse url: %s %s", e.getMessage(), e));
+            }
+            Configuration conf = new Configuration();
+            for (Map.Entry<String, String> entry : fsp.entrySet()) {
+              conf.set(entry.getKey(), entry.getValue());
+            }
+            String protocol = urlInfo.toUri().getScheme();
+            if (protocol.equals(SFTP_PROTOCOL)) {
+              conf.set(FS_SFTP_IMPL, SFTP_FS_CLASS);
+            }
+            FileSystem fs = FileSystem.newInstance(urlInfo.toUri(), conf);
+            // TODO: Add setTimeout option in the future
+            // https://cdap.atlassian.net/browse/PLUGIN-1181
+            fs.getFileStatus(urlInfo);
           } catch (Exception e) {
-            throw new IllegalArgumentException(String.format("Unable to parse url: %s %s", e.getMessage(), e));
+            collector.addFailure("Unable to connect with given url", null)
+              .withConfigProperty(PATH).withStacktrace(e.getStackTrace());
           }
-          Configuration conf = new Configuration();
-          for (Map.Entry<String, String> entry : fsp.entrySet()) {
-            conf.set(entry.getKey(), entry.getValue());
-          }
-          String protocol = urlInfo.toUri().getScheme();
-          if (protocol.equals(SFTP_PROTOCOL)) {
-            conf.set(FS_SFTP_IMPL, SFTP_FS_CLASS);
-          }
-          FileSystem fs = FileSystem.newInstance(urlInfo.toUri(), conf);
-          // TODO: Add setTimeout option in the future
-          // https://cdap.atlassian.net/browse/PLUGIN-1181
-          fs.getFileStatus(urlInfo);
-        } catch (Exception e) {
-          collector.addFailure("Unable to connect with given url", null)
-            .withConfigProperty(PATH).withStacktrace(e.getStackTrace());
         }
       } catch (IllegalArgumentException e) {
         collector.addFailure("File system properties must be a valid json.", null)
