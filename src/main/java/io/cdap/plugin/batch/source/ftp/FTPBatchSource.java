@@ -63,6 +63,7 @@ public class FTPBatchSource extends AbstractFileSource {
   public static final Logger LOG = LoggerFactory.getLogger(FTPBatchSource.class);
   private static final String NAME_FILE_SYSTEM_PROPERTIES = "fileSystemProperties";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
+  private static final String FS_SFTP_IMPL_CACHE = "fs.sftp.impl.disable.cache";
   private static final String SFTP_FS_CLASS = SFTPFileSystem.class.getName();
   private static final String FTP_PROTOCOL = "ftp";
   private static final String SFTP_PROTOCOL = "sftp";
@@ -104,6 +105,7 @@ public class FTPBatchSource extends AbstractFileSource {
 
     if (!properties.containsKey(FS_SFTP_IMPL)) {
       properties.put(FS_SFTP_IMPL, SFTP_FS_CLASS);
+      properties.put(FS_SFTP_IMPL_CACHE, "true");
     }
     // Limit the number of splits to 1 since FTPInputStream does not support seek;
     properties.put(FileInputFormat.SPLIT_MINSIZE, Long.toString(Long.MAX_VALUE));
@@ -181,6 +183,7 @@ public class FTPBatchSource extends AbstractFileSource {
           String protocol = urlInfo.toUri().getScheme();
           if (protocol.equals(SFTP_PROTOCOL)) {
             conf.set(FS_SFTP_IMPL, SFTP_FS_CLASS);
+            conf.setBoolean(FS_SFTP_IMPL_CACHE, true);
           }
           FileSystem fs = JobUtils.applyWithExtraClassLoader(job, getClass().getClassLoader(),
               f -> FileSystem.get(urlInfo.toUri(), conf));
