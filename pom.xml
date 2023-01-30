@@ -267,11 +267,6 @@
     </dependency>
     <dependency>
       <groupId>io.cdap.plugin</groupId>
-      <artifactId>format-avro</artifactId>
-      <version>${hydrator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.cdap.plugin</groupId>
       <artifactId>format-blob</artifactId>
       <version>${hydrator.version}</version>
     </dependency>
@@ -283,16 +278,6 @@
     <dependency>
       <groupId>io.cdap.plugin</groupId>
       <artifactId>format-json</artifactId>
-      <version>${hydrator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.cdap.plugin</groupId>
-      <artifactId>format-orc</artifactId>
-      <version>${hydrator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.cdap.plugin</groupId>
-      <artifactId>format-parquet</artifactId>
       <version>${hydrator.version}</version>
     </dependency>
     <dependency>

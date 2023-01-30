@@ -59,7 +59,7 @@ import javax.annotation.Nullable;
 @Name("FTP")
 @Description("Batch source for an FTP or SFTP source. Prefix of the path ('ftp://...' or 'sftp://...') determines " +
   "the source server type, either FTP or SFTP.")
-public class FTPBatchSource extends AbstractFileSource {
+public class FTPBatchSource extends AbstractFileSource<FTPBatchSource.FTPBatchSourceConfig> {
   public static final Logger LOG = LoggerFactory.getLogger(FTPBatchSource.class);
   private static final String NAME_FILE_SYSTEM_PROPERTIES = "fileSystemProperties";
   private static final String FS_SFTP_IMPL = "fs.sftp.impl";
@@ -70,10 +70,6 @@ public class FTPBatchSource extends AbstractFileSource {
   private static final String PATH = "path";
   private static final int DEFAULT_FTP_PORT = 21;
   private static final int DEFAULT_SFTP_PORT = 22;
-
-  public static final Schema SCHEMA = Schema.recordOf("text",
-                                                      Schema.Field.of("offset", Schema.of(Schema.Type.LONG)),
-                                                      Schema.Field.of("body", Schema.of(Schema.Type.STRING)));
   private static final Pattern PATTERN_WITHOUT_SPECIAL_CHARACTERS = Pattern.compile("[^A-Za-z0-9]");
   private final FTPBatchSourceConfig config;
   private Asset asset;
@@ -123,8 +119,7 @@ public class FTPBatchSource extends AbstractFileSource {
   @SuppressWarnings("unused")
   public static class FTPBatchSourceConfig extends PluginConfig implements FileSourceProperties {
     private static final Gson GSON = new Gson();
-    private static final Type MAP_STRING_STRING_TYPE = new TypeToken<Map<String, String>>() {
-    }.getType();
+    private static final Type MAP_STRING_STRING_TYPE = new TypeToken<Map<String, String>>() { }.getType();
 
     @Macro
     @Nullable
@@ -142,6 +137,7 @@ public class FTPBatchSource extends AbstractFileSource {
       + "This is an advanced feature that requires knowledge of the properties supported by the underlying filesystem.")
     private String fileSystemProperties;
 
+    @Macro
     @Nullable
     @Description("Whether to allow an input that does not exist. When false, the source will fail the run if the input "
       + "does not exist. When true, the run will not fail and the source will not generate any output. "
@@ -155,6 +151,24 @@ public class FTPBatchSource extends AbstractFileSource {
       + "See https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html for more information about "
       + "the regular expression syntax.")
     private String fileRegex;
+
+    @Macro
+    @Nullable
+    @Description("Whether to use first row as header. Supported formats are 'text', 'csv', 'tsv', " +
+            "'delimited'. Default value is false.")
+    private Boolean skipHeader;
+
+    @Macro
+    @Nullable
+    @Description("Format of the data to read. Supported formats are 'avro', 'blob', 'csv', 'delimited', 'json', "
+            + "'parquet', 'text', or 'tsv'. If no format is given, it will default to 'text'.")
+    private String format;
+
+    @Macro
+    @Nullable
+    @Description("Output schema for the source. Formats like 'avro' and 'parquet' require a schema in order to "
+            + "read the data.")
+    private String schema;
 
     @Override
     public void validate(FailureCollector collector) {
@@ -237,7 +251,7 @@ public class FTPBatchSource extends AbstractFileSource {
 
     @Override
     public String getFormatName() {
-      return FileFormat.TEXT.name().toLowerCase();
+      return format == null || format.isEmpty() ? FileFormat.TEXT.name().toLowerCase() : format;
     }
 
     @Nullable
@@ -253,7 +267,7 @@ public class FTPBatchSource extends AbstractFileSource {
 
     @Override
     public boolean shouldAllowEmptyInput() {
-      return false;
+      return ignoreNonExistingFolders != null && ignoreNonExistingFolders;
     }
 
     @Override
@@ -274,13 +288,16 @@ public class FTPBatchSource extends AbstractFileSource {
 
     @Override
     public boolean skipHeader() {
-      return false;
+      return skipHeader == null ? false : skipHeader;
     }
 
     @Nullable
-    @Override
     public Schema getSchema() {
-      return SCHEMA;
+      try {
+        return containsMacro("schema") || Strings.isNullOrEmpty(schema) ? null : Schema.parseJson(schema);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid schema: " + e.getMessage(), e);
+      }
     }
 
     @VisibleForTesting

@@ -33,8 +33,6 @@ import io.cdap.cdap.test.ApplicationManager;
 import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.cdap.test.WorkflowManager;
 import io.cdap.plugin.batch.source.ftp.FTPBatchSource;
-import io.cdap.plugin.format.avro.input.AvroInputFormatProvider;
-import io.cdap.plugin.format.avro.output.AvroOutputFormatProvider;
 import io.cdap.plugin.format.blob.input.BlobInputFormatProvider;
 import io.cdap.plugin.format.delimited.input.CSVInputFormatProvider;
 import io.cdap.plugin.format.delimited.input.DelimitedInputFormatProvider;
@@ -44,17 +42,9 @@ import io.cdap.plugin.format.delimited.output.DelimitedOutputFormatProvider;
 import io.cdap.plugin.format.delimited.output.TSVOutputFormatProvider;
 import io.cdap.plugin.format.json.input.JsonInputFormatProvider;
 import io.cdap.plugin.format.json.output.JsonOutputFormatProvider;
-import io.cdap.plugin.format.orc.output.OrcOutputFormatProvider;
-import io.cdap.plugin.format.parquet.input.ParquetInputFormatProvider;
-import io.cdap.plugin.format.parquet.output.ParquetOutputFormatProvider;
 import io.cdap.plugin.format.text.input.TextInputFormatProvider;
-import org.apache.hadoop.hive.ql.exec.vector.TimestampColumnVector;
-import org.apache.orc.TypeDescription;
-import org.apache.orc.mapred.OrcStruct;
-import org.apache.orc.mapreduce.OrcOutputFormat;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.xerial.snappy.Snappy;
 
 import java.util.Map;
 import java.util.Set;
@@ -93,10 +83,6 @@ public class ETLBatchTestBase extends HydratorTestBase {
     addPluginArtifact(NamespaceId.DEFAULT.artifact("ftp-plugins", "1.0.0"), parents,
                       FTPBatchSource.class
     );
-    // add format plugins
-    addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-avro", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
-                      ImmutableSet.of(AvroOutputFormatProvider.PLUGIN_CLASS, AvroInputFormatProvider.PLUGIN_CLASS),
-                      AvroOutputFormatProvider.class, AvroInputFormatProvider.class);
     addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-blob", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
                       ImmutableSet.of(BlobInputFormatProvider.PLUGIN_CLASS), BlobInputFormatProvider.class);
     addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-delimited", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
@@ -108,15 +94,6 @@ public class ETLBatchTestBase extends HydratorTestBase {
     addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-json", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
                       ImmutableSet.of(JsonOutputFormatProvider.PLUGIN_CLASS, JsonInputFormatProvider.PLUGIN_CLASS),
                       JsonOutputFormatProvider.class, JsonInputFormatProvider.class);
-    addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-orc", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
-                      ImmutableSet.of(OrcOutputFormatProvider.PLUGIN_CLASS),
-                      OrcOutputFormatProvider.class, OrcOutputFormat.class, OrcStruct.class,
-                      TypeDescription.class, TimestampColumnVector.class);
-    addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-parquet", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
-                      ImmutableSet.of(ParquetOutputFormatProvider.PLUGIN_CLASS,
-                                      ParquetInputFormatProvider.PLUGIN_CLASS),
-                      ParquetOutputFormatProvider.class, ParquetInputFormatProvider.class,
-                      Snappy.class);
     addPluginArtifact(NamespaceId.DEFAULT.artifact("formats-text", "4.0.0"), DATAPIPELINE_ARTIFACT_ID,
                       ImmutableSet.of(TextInputFormatProvider.PLUGIN_CLASS), TextInputFormatProvider.class);
   }
