@@ -29,9 +29,9 @@ import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.batch.BatchSource;
 import io.cdap.cdap.etl.api.batch.BatchSourceContext;
-import io.cdap.plugin.common.Asset;
+// import io.cdap.plugin.common.Asset;
 import io.cdap.plugin.common.LineageRecorder;
-import io.cdap.plugin.common.ReferenceNames;
+// import io.cdap.plugin.common.ReferenceNames;
 import io.cdap.plugin.common.batch.JobUtils;
 import io.cdap.plugin.format.FileFormat;
 import io.cdap.plugin.format.plugin.AbstractFileSource;
@@ -44,13 +44,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 
 /**
  * {@link BatchSource} that reads from an FTP or SFTP server.
@@ -72,7 +72,7 @@ public class FTPBatchSource extends AbstractFileSource<FTPBatchSource.FTPBatchSo
   private static final int DEFAULT_SFTP_PORT = 22;
   private static final Pattern PATTERN_WITHOUT_SPECIAL_CHARACTERS = Pattern.compile("[^A-Za-z0-9]");
   private final FTPBatchSourceConfig config;
-  private Asset asset;
+  // private Asset asset;
 
   public FTPBatchSource(FTPBatchSourceConfig config) {
     super(config);
@@ -82,11 +82,11 @@ public class FTPBatchSource extends AbstractFileSource<FTPBatchSource.FTPBatchSo
   @Override
   public void prepareRun(BatchSourceContext context) throws Exception {
     // create asset for lineage
-    String referenceName = Strings.isNullOrEmpty(config.getReferenceName())
-      ? ReferenceNames.normalizeFqn(config.getPath())
-      : config.getReferenceName();
-    asset = Asset.builder(referenceName)
-      .setFqn(config.getPath()).build();
+    // String referenceName = Strings.isNullOrEmpty(config.getReferenceName())
+    //   ? ReferenceNames.normalizeFqn(config.getPath())
+    //   : config.getReferenceName();
+    // asset = Asset.builder(referenceName)
+    //   .setFqn(config.getPath()).build();
 
     // super is called down here to avoid instantiating the lineage recorder with a null asset
     super.prepareRun(context);
@@ -108,10 +108,10 @@ public class FTPBatchSource extends AbstractFileSource<FTPBatchSource.FTPBatchSo
     return properties;
   }
 
-  @Override
-  protected LineageRecorder getLineageRecorder(BatchSourceContext context) {
-    return new LineageRecorder(context, asset);
-  }
+  // @Override
+  // protected LineageRecorder getLineageRecorder(BatchSourceContext context) {
+  //   return new LineageRecorder(context, asset);
+  // }
 
   /**
    * Config class that contains all the properties needed for FTP Batch Source.
